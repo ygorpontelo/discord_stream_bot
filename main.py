@@ -1,7 +1,8 @@
+import sys
 import discord
 import pyaudio
-import inquirer
 import samplerate
+import questionary
 import numpy as np
 
 from discord.ext import commands
@@ -65,7 +66,7 @@ def create_bot(device, audio) -> commands.Bot:
         async with ctx.typing():
             ctx.voice_client.play(PyAudioPCM(device, audio), after=lambda e: print(f'Player error: {e}') if e else None)
 
-        await ctx.send('Streaming From VB Cable')
+        await ctx.send(f'Streaming From {device["name"]}')
     
     @bot.command(name="volume", aliases=["v"], help="Change bot volume")
     async def volume(ctx, volume: int):
@@ -98,8 +99,13 @@ def create_bot(device, audio) -> commands.Bot:
 
 
 if __name__ == "__main__":
-    with open("token.txt", 'r') as f:
-        token = f.readline()
+    try:
+        with open("token.txt", 'r') as f:
+            token = f.readline()
+    except FileNotFoundError:
+        print("Token file not found!")
+        input("Press Enter to exit")
+        sys.exit(1)
 
     p = pyaudio.PyAudio()
 
@@ -115,14 +121,10 @@ if __name__ == "__main__":
             index += 1
 
     # choice of input by user
-    questions = [
-        inquirer.List(
-            'device',
-            message="Select Device you want to stream",
-            choices=list(device_inputs),
-        ),
-    ]
-    answer = inquirer.prompt(questions)
+    answer = questionary.select(
+        "Select Device you want to stream:",
+        choices=list(device_inputs),
+    ).ask()
 
     # start bot
-    create_bot(device_inputs[answer["device"]], p).run(token)
+    create_bot(device_inputs[answer], p).run(token)
