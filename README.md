@@ -11,5 +11,5 @@ Poetry is the recommended way to manage dependencies, but you can install them v
 To compile the bot to exe, use this command:
 
 ```
-pyinstaller --console --onefile --collect-all discord --collect-all samplerate --collect-all pyaudio main.py
+pyinstaller --console --onefile --collect-all discord --collect-all samplerate --collect-all pyaudio bot.py
 ```
