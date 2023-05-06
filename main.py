@@ -39,25 +39,15 @@ class PyAudioPCM(discord.AudioSource):
         return frame.tobytes()
 
 
-def create_bot(device, audio) -> commands.Bot:
+def create_bot(bot_prefix, device, audio) -> commands.Bot:
     intents = discord.Intents.default()
     intents.message_content = True
-    bot = commands.Bot(command_prefix="!", description="Discord Audio Stream Bot", intents=intents)
+    bot = commands.Bot(command_prefix=bot_prefix, description="Discord Audio Stream Bot", intents=intents)
 
     @bot.event
     async def on_ready():
         print(f'Logged in as {bot.user} (ID: {bot.user.id})')
-        print('------')
-
-    @bot.command(name="join", aliases=["j"], help="Join user channel")
-    async def join(ctx):
-        """Joins a voice channel"""
-
-        channel = ctx.author.voice.channel
-        if ctx.voice_client is not None:
-            return await ctx.voice_client.move_to(channel)
-
-        await channel.connect()
+        print('-'*100)
     
     @bot.command(name="play", aliases=["p"], help="Play audio")
     async def play(ctx):
@@ -68,22 +58,12 @@ def create_bot(device, audio) -> commands.Bot:
 
         await ctx.send(f'Streaming From {device["name"]}')
     
-    @bot.command(name="volume", aliases=["v"], help="Change bot volume")
-    async def volume(ctx, volume: int):
-        """Changes the player's volume"""
-
-        if ctx.voice_client is None:
-            return await ctx.send("Not connected to a voice channel.")
-
-        ctx.voice_client.source.volume = volume / 100
-        await ctx.send(f"Changed volume to {volume}%")
-    
     @bot.command(name="stop", aliases=["s"], help="Disconnect bot")
     async def stop(ctx):
         """Stops and disconnects the bot from voice"""
 
         await ctx.voice_client.disconnect()
-    
+
     @play.before_invoke
     async def ensure_voice(ctx):
         if ctx.voice_client is None:
@@ -94,7 +74,7 @@ def create_bot(device, audio) -> commands.Bot:
                 raise commands.CommandError("Author not connected to a voice channel.")
         elif ctx.voice_client.is_playing():
             ctx.voice_client.stop()
-    
+
     return bot
 
 
@@ -106,6 +86,8 @@ if __name__ == "__main__":
         print("Token file not found!")
         input("Press Enter to exit")
         sys.exit(1)
+
+    bot_prefix = questionary.text("Bot Prefix: ").ask().strip()
 
     p = pyaudio.PyAudio()
 
@@ -127,4 +109,4 @@ if __name__ == "__main__":
     ).ask()
 
     # start bot
-    create_bot(device_inputs[answer], p).run(token)
+    create_bot(bot_prefix, device_inputs[answer], p).run(token)
