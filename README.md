@@ -13,3 +13,5 @@ To compile the bot to exe, use this command:
 ```
 pyinstaller --console --onefile --collect-all discord --collect-all samplerate --collect-all pyaudio bot.py
 ```
+
+Tutorial video (PT-BR): https://youtu.be/UX1de8Hu2p0
